@@ -49,3 +49,6 @@ dmypy.json
 
 # Logs
 *.log
+
+# Raw dataset (re-fetch with: python download_data.py)
+pluribus/

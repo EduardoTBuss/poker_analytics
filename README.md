@@ -31,7 +31,7 @@ This project implements a **quantitative framework for analyzing decision qualit
 ```bash
 # Clone and setup
 git clone https://github.com/EduardoTBuss/poker_analytics
-cd poker-analysis
+cd poker_analytics
 pip install -r requirements.txt
 
 # Run full pipeline
@@ -76,6 +76,21 @@ Poker provides an **ideal controlled environment** for decision analysis:
 - **Format:** `.phh` (Poker Hand History) text files
 - **Structure:** 92 sessions, 10,000 files, 60k individual hands
 - **Important Note:** This dataset represents AI learning/training data, not optimal play. The overall negative performance (-2,413 BB) is expected for exploration-heavy strategies during learning phases.
+
+### What ships with this repo
+The **parsed** dataset is committed under `data/` (≈4.6 MB), so a fresh clone
+works immediately — no download required:
+
+```
+data/
+├── hands.csv / hands.parquet                  # one row per hand
+└── players_in_hand.csv / players_in_hand.parquet  # one row per player-hand
+```
+
+Just `pip install -r requirements.txt` and load these files (the analysis in
+`Poker_analysis.py` reads from `data/`). The ~10k raw `.phh` files are **not**
+tracked in git — they are large and fully reproducible from the public source
+below (see *Reproducing from raw data*).
 
 ### Directory Structure
 
@@ -561,33 +576,52 @@ pip (Python package manager)
 ```bash
 # Clone repository
 git clone https://github.com/EduardoTBuss/poker_analytics
-cd poker-analysis
+cd poker_analytics
 
 # Install dependencies
 pip install -r requirements.txt
 
 ```
 
-### Dataset Setup
+### Run on the parsed data (default)
 
-1. **Download the dataset** from [phh-dataset](https://github.com/uoftcprg/phh-dataset)
-2. **Extract** the `pluribus/` folder into your project root:
+The parsed dataset is already in `data/`, so right after cloning and installing
+the dependencies you can run the full analysis directly — no dataset download needed:
+
+```bash
+python main.py
+```
+
+`main.py` auto-detects the raw data: if `pluribus/` is absent (the default after a
+clone) it analyzes the committed `data/` straight away; if `pluribus/` is present
+it re-parses it first (see *Reproducing from raw data* below).
+
+### Reproducing from raw data
+
+To rebuild everything from the original `.phh` hand histories:
+
+1. **Fetch the raw dataset** (~10k `.phh` files into `pluribus/`):
+   ```bash
+   python download_data.py
    ```
-   poker-analysis/
-   ├── pluribus/          # ← Place extracted dataset here
+   This shallow-clones the public [phh-dataset](https://github.com/uoftcprg/phh-dataset)
+   and copies its `data/pluribus/*` sessions into a local `pluribus/` folder, in
+   the exact layout `Poker_parser.py` expects:
+   ```
+   poker_analytics/
+   ├── pluribus/          # ← created by download_data.py (git-ignored)
    │   ├── 30/
    │   ├── 31/
    │   └── ...
-   ├── poker_parser.py
+   ├── Poker_parser.py
    └── ...
    ```
-3. **Verify structure:** The parser expects `.phh` files in session subdirectories
-
-### Execution
-```bash
-# Full pipeline: Parse → Analyze → Visualize
-python main.py
-```
+   `pluribus/` is listed in `.gitignore` and is never committed.
+2. **Re-run the pipeline** to re-parse and regenerate `data/`:
+   ```bash
+   # Full pipeline: Parse → Analyze → Visualize
+   python main.py
+   ```
 
 **Processing time:** ~10-15 minutes for 10,000 files (60k hands)
 
